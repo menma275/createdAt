@@ -1,0 +1,13 @@
+gpiozero
+pigpio
+lgpio
+rpi-lgpio
+
+spidev
+smbus2
+
+pillow
+numpy
+
+noise
+geocoder
