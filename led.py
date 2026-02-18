@@ -1,7 +1,7 @@
 import logging
 import time
 import threading
-import geocoder
+#import geocoder
 from gpiozero import DigitalOutputDevice
 from spi import spi_lock, epaper_busy
 
@@ -44,12 +44,12 @@ class SevenSeg:
                 logger.info(f"Location: lat={self._lat}, lng={self._lng}")
             else:
                 logger.warning("Could not get location")
-                self._lat = 0.0
-                self._lng = 0.0
+                self._lat = 35.6612277 
+                self._lng = 139.3673645
         except Exception as e:
             logger.error(f"Error getting location: {e}")
-            self._lat = 0.0
-            self._lng = 0.0
+            self._lat = 35.6612277 
+            self._lng = 139.3673645
 
     def _pulse(self):
         self.clk.off()

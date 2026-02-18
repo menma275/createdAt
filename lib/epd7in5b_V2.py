@@ -289,14 +289,6 @@ class EPD:
 
         return buf
 
-    #def generatebuffer_latlng(self, hash_mode, block_size):
-    #    g = geocoder.ip('me')
-    #    bit_str = self.numbers_to_bitstring(g.latlng, hash_mode)
-    #    buf = self.makebuffer_from_bitstring(bit_str, block_size)
-        
-    #    return buf
-
-
     def generatebuffer_time(self, hash_mode, block_size):
         t = time.time()
         dt = datetime.now()

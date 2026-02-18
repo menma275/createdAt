@@ -1,7 +1,7 @@
 import logging
 import time
 import math
-import geocoder
+#import geocoder
 from enum import Enum
 from gpiozero import Button
 from signal import pause
@@ -57,9 +57,11 @@ def toggle(press_duration):
         sevenseg.set_mode(mode)
         sevenseg.freeze()
 
-        g = geocoder.ip('me')
-        lat = g.latlng[0]
-        lng = g.latlng[1]
+        #g = geocoder.ip('me')
+        #lat = g.latlng[0]
+        #lng = g.latlng[1]
+        lat = 35.6612277 
+        lng = 139.3673645
         seed = abs(lat * 100 + lng * 100)
         # -----
         block_size = int(press_duration)
@@ -69,7 +71,8 @@ def toggle(press_duration):
         hash_mode = int(seed% 11) 
         logger.info(f"Hash Mode: {hash_mode}")
         # -----
-        is_perlin = int(seed)%2==0
+        #is_perlin = int(seed)%2==0
+        is_perlin = True 
         logger.info(f"is Perlin - value: {seed}")
         logger.info(f"is Perlin: {is_perlin}")
         # -----
