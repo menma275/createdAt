@@ -55,6 +55,10 @@ class SevenSeg:
             self._lat = lat
             self._lng = lng
 
+    def refresh_location(self):
+        logger.info("refresh location")
+        threading.Thread(target=self._get_location, daemon=True).start()
+
     def _pulse(self):
         self.clk.off()
         self.clk.on()

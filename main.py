@@ -44,7 +44,10 @@ def init():
 
 def on_reset_pressed():
     logger.info("Reset button pressed")
-    init()
+    #init()
+
+    if sevenseg is not None:
+        sevenseg.refresh_location()
 
 def on_button_press():
     global button_press_time, mode
