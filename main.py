@@ -1,7 +1,7 @@
 import logging
 import time
 import math
-#import geocoder
+import geocoder
 from enum import Enum
 from gpiozero import Button
 from signal import pause
@@ -23,10 +23,28 @@ class Mode(Enum):
 
 mode = Mode.IDLE
 button_press_time = None
+sevenseg = None
 
 def make_number(value):
     frac = value - math.floor(value)
     return 0.01 + frac * 0.09
+
+def init():
+    global mode, button_press_time, sevenseg
+    
+    logger.info("--- Init ---")
+
+    mode = Mode.IDLE
+    button_press_time = None
+
+    try: 
+        epaper.clear()
+    except Exception as e:
+        logger.warning(f"epaper.clear failed: {e}")
+
+def on_reset_pressed():
+    logger.info("Reset button pressed")
+    init()
 
 def on_button_press():
     global button_press_time, mode
@@ -57,11 +75,9 @@ def toggle(press_duration):
         sevenseg.set_mode(mode)
         sevenseg.freeze()
 
-        #g = geocoder.ip('me')
-        #lat = g.latlng[0]
-        #lng = g.latlng[1]
-        lat = 35.6612277 
-        lng = 139.3673645
+        g = geocoder.ip('me')
+        lat = g.latlng[0]
+        lng = g.latlng[1]
         seed = abs(lat * 100 + lng * 100)
         # -----
         block_size = int(press_duration)
@@ -71,8 +87,8 @@ def toggle(press_duration):
         hash_mode = int(seed% 11) 
         logger.info(f"Hash Mode: {hash_mode}")
         # -----
-        #is_perlin = int(seed)%2==0
-        is_perlin = True 
+        is_perlin = int(seed)%2==0
+        #is_perlin = True 
         logger.info(f"is Perlin - value: {seed}")
         logger.info(f"is Perlin: {is_perlin}")
         # -----
@@ -98,26 +114,39 @@ def toggle(press_duration):
         epaper.clear()
         sevenseg.unfreeze()
 
-epaper.clear()
-
-time.sleep(0.3)
-
-sevenseg = led.SevenSeg()
-sevenseg.set_mode(mode)
-
-time.sleep(0.3)
-
-button = Button(
-    23,
-    pull_up=True,
-    bounce_time=0.05
-)
-
-button.when_pressed = on_button_press
-button.when_released = on_button_release
-
+# --- init, boost ---
 try:
+    sevenseg = led.SevenSeg()
+
+    time.sleep(0.3)
+
+    init()
+
+    time.sleep(0.3)
+
+    # toggle button 
+    button = Button(
+        23,
+        pull_up=True,
+        bounce_time=0.05
+    )
+
+    button.when_pressed = on_button_press
+    button.when_released = on_button_release
+
+
+    reset_button = Button(
+        26,
+        pull_up=True,
+        bounce_time=0.1
+    )
+    
+    reset_button.when_pressed = on_reset_pressed
+
+    logger.info("System ready")
+
     pause()
+
 except KeyboardInterrupt:
     logger.info("Shutting down")
     try:

@@ -1,7 +1,7 @@
 import logging
 import time
 import threading
-#import geocoder
+import geocoder
 from gpiozero import DigitalOutputDevice
 from spi import spi_lock, epaper_busy
 
@@ -15,7 +15,7 @@ class SevenSeg:
         self.modules = modules 
         self.mode = "IDLE"
         self._lock = threading.Lock()
-        self._frozen_value = ""
+        self._frozen_value = None
         self._running = True
 
         self._lat = None
@@ -39,17 +39,21 @@ class SevenSeg:
         try:
             g = geocoder.ip("me")
             if g.latlng:
-                self._lat = g.latlng[0]
-                self._lng = g.latlng[1]
+                lat = g.latlng[0]
+                lng = g.latlng[1]
                 logger.info(f"Location: lat={self._lat}, lng={self._lng}")
             else:
                 logger.warning("Could not get location")
-                self._lat = 35.6612277 
-                self._lng = 139.3673645
+                lat =  0.0
+                lng = 0.0 
         except Exception as e:
             logger.error(f"Error getting location: {e}")
-            self._lat = 35.6612277 
-            self._lng = 139.3673645
+            lat =  0.0
+            lng = 0.0 
+
+        with self._lock:
+            self._lat = lat
+            self._lng = lng
 
     def _pulse(self):
         self.clk.off()
@@ -104,7 +108,7 @@ class SevenSeg:
 
     def unfreeze(self):
         with self._lock:
-            self._frozen_value = ""
+            self._frozen_value = None
 
     def _unix_time(self):
         return f"{int(time.time()) % 100_000_000:08d}"
@@ -189,6 +193,9 @@ class SevenSeg:
                         module0_value = self._frozen_value
                     else:
                         module0_value = self._unix_time()
+
+                    if(self._lat == 0.0 and self._lng == 0.0) or self._lat is None:
+                        self._get_location()
 
                     module1_value = self._format_coordinate(self._lat)
                     module2_value = self._format_coordinate(self._lng)
