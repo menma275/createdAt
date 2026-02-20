@@ -61,13 +61,17 @@ class SevenSeg:
 
     def _pulse(self):
         self.clk.off()
+        time.sleep(0.000001)
         self.clk.on()
+        time.sleep(0.000001)
 
     def _shift_out(self, byte):
         for _ in range(8):
             self.clk.off()
+            time.sleep(0.000001)
             self.din.value = (byte & 0x80) != 0
             byte <<= 1
+            time.sleep(0.000001)
             self.clk.on()
 
     def _write(self, reg, data):
@@ -197,9 +201,6 @@ class SevenSeg:
                         module0_value = self._frozen_value
                     else:
                         module0_value = self._unix_time()
-
-                    if(self._lat == 0.0 and self._lng == 0.0) or self._lat is None:
-                        self._get_location()
 
                     module1_value = self._format_coordinate(self._lat)
                     module2_value = self._format_coordinate(self._lng)
