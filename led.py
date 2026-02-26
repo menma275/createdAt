@@ -36,24 +36,26 @@ class SevenSeg:
         logger.info("SevenSeg init done / thread start")
 
     def _get_location(self):
-        try:
-            g = geocoder.ip("me")
-            if g.latlng:
-                lat = g.latlng[0]
-                lng = g.latlng[1]
-                logger.info(f"Location: lat={self._lat}, lng={self._lng}")
-            else:
-                logger.warning("Could not get location")
-                lat =  0.0
-                lng = 0.0 
-        except Exception as e:
-            logger.error(f"Error getting location: {e}")
-            lat =  0.0
-            lng = 0.0 
+        #try:
+        #    g = geocoder.ip("me")
+        #    if g.latlng:
+        #        lat = g.latlng[0]
+        #        lng = g.latlng[1]
+        #        logger.info(f"Location: lat={self._lat}, lng={self._lng}")
+        #    else:
+        #        logger.warning("Could not get location")
+        #        lat =  0.0
+        #        lng = 0.0 
+        #except Exception as e:
+        #    logger.error(f"Error getting location: {e}")
+        #    lat =  0.0
+        #    lng = 0.0 
 
         with self._lock:
-            self._lat = lat
-            self._lng = lng
+            #self._lat = lat
+            #self._lng = lng
+            self._lat = 35.717420305092794
+            self._lng = 139.77294943554242
 
     def refresh_location(self):
         logger.info("refresh location")

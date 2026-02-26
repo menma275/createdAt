@@ -69,6 +69,10 @@ def on_button_release():
     button_press_time = time.time()
     logger.debug("Button pressed")
 
+def is_tenths_even(x: float) -> bool:
+    tenths = int(abs(x) * 10)%10
+    return tenths % 2 == 0
+
 def toggle(press_duration):
     global mode
 
@@ -78,9 +82,16 @@ def toggle(press_duration):
         sevenseg.set_mode(mode)
         sevenseg.freeze()
 
-        g = geocoder.ip('me')
-        lat = g.latlng[0]
-        lng = g.latlng[1]
+        # geocoder ---
+        #g = geocoder.ip('me')
+        #lat = g.latlng[0]
+        #lng = g.latlng[1]
+
+        # Tokyo Metroploitan Museum
+        lat = 35.717420305092794
+        lng = 139.77294943554242
+
+        logger.info(f"Location: {lat} {lng}")
         seed = abs(lat * 100 + lng * 100)
         # -----
         block_size = int(press_duration)
@@ -90,8 +101,7 @@ def toggle(press_duration):
         hash_mode = int(seed% 11) 
         logger.info(f"Hash Mode: {hash_mode}")
         # -----
-        is_perlin = int(seed)%2==0
-        #is_perlin = True 
+        is_perlin = is_tenths_even(press_duration)
         logger.info(f"is Perlin - value: {seed}")
         logger.info(f"is Perlin: {is_perlin}")
         # -----
