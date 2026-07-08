@@ -1,13 +1,14 @@
 import logging
 import time
 import math
-import geocoder
+#import geocoder
 from enum import Enum
 from gpiozero import Button
 from signal import pause
 
 import led
 import epaper
+from gps import DEFAULT_LATITUDE, DEFAULT_LONGITUDE
 
 logging.basicConfig(
     level=logging.INFO,
@@ -87,9 +88,10 @@ def toggle(press_duration):
         #lat = g.latlng[0]
         #lng = g.latlng[1]
 
-        # Tokyo Metroploitan Museum
-        lat = 35.717420305092794
-        lng = 139.77294943554242
+        #lat = DEFAULT_LATITUDE
+        #lng = DEFAULT_LONGITUDE
+
+        lat, lng, _ = sevenseg.gps.get_location()
 
         logger.info(f"Location: {lat} {lng}")
         seed = abs(lat * 100 + lng * 100)

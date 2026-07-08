@@ -4,6 +4,7 @@ import threading
 import geocoder
 from gpiozero import DigitalOutputDevice
 from spi import spi_lock, epaper_busy
+from gps import DEFAULT_LATITUDE, DEFAULT_LONGITUDE
 
 logger = logging.getLogger("led")
 
@@ -20,6 +21,12 @@ class SevenSeg:
 
         self._lat = None
         self._lng = None
+        
+        # Initialize and start GPS module
+        from gps import GravityGPS
+        self.gps = GravityGPS(mode="i2c")
+        self.gps.start()
+        
         self._get_location()
 
         self.din = DigitalOutputDevice(16)
@@ -36,26 +43,10 @@ class SevenSeg:
         logger.info("SevenSeg init done / thread start")
 
     def _get_location(self):
-        #try:
-        #    g = geocoder.ip("me")
-        #    if g.latlng:
-        #        lat = g.latlng[0]
-        #        lng = g.latlng[1]
-        #        logger.info(f"Location: lat={self._lat}, lng={self._lng}")
-        #    else:
-        #        logger.warning("Could not get location")
-        #        lat =  0.0
-        #        lng = 0.0 
-        #except Exception as e:
-        #    logger.error(f"Error getting location: {e}")
-        #    lat =  0.0
-        #    lng = 0.0 
-
+        lat, lng, has_fix = self.gps.get_location()
         with self._lock:
-            #self._lat = lat
-            #self._lng = lng
-            self._lat = 35.717420305092794
-            self._lng = 139.77294943554242
+            self._lat = lat
+            self._lng = lng
 
     def refresh_location(self):
         logger.info("refresh location")
@@ -198,6 +189,9 @@ class SevenSeg:
                 continue
         
             try:
+                # Fetch the latest location from GPS dynamically on each tick
+                self._get_location()
+                
                 with self._lock:
                     if self._frozen_value:
                         module0_value = self._frozen_value
