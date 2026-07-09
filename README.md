@@ -110,13 +110,12 @@ To resolve GPS initialization failures and high CPU usage when running as a syst
 * **GPS Standby Recovery (gps.py):** Added a 3-second startup delay and implemented auto-reinitialization if the GPS module returns all-zero data (`0.0, 0.0` with empty direction registers) for 10 consecutive seconds.
 
 ### 2. Recommended systemd Service File (`createdat.service`)
-To ensure hardware (I2C/SPI) and network interfaces are fully ready before the Python script launches, configure the service file as follows:
+To ensure hardware (I2C/SPI) and local filesystems are fully ready before the Python script launches, configure the service file as follows:
 
 ```ini
 [Unit]
 Description=Run createdAt main.py on boot
-After=network-online.target
-Wants=network-online.target
+After=local-fs.target
 
 [Service]
 Type=simple
