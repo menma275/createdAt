@@ -69,6 +69,10 @@ class GravityGPS:
         import smbus2
 
         bus = None
+        zero_data_count = 0
+
+        # Wait for system/hardware to stabilize on boot
+        time.sleep(3.0)
 
         while self._running:
             try:
@@ -86,8 +90,16 @@ class GravityGPS:
                         bus.write_byte_data(self.i2c_address, 0x24, 0x05)
                         time.sleep(0.1)
                         logger.info("Sent I2C startup commands to GPS module (Power ON, GPS+BeiDou+GLONASS mode)")
+                        zero_data_count = 0
                     except Exception as init_err:
                         logger.warning(f"GPS initialization write failed: {init_err}")
+                        try:
+                            bus.close()
+                        except:
+                            pass
+                        bus = None
+                        time.sleep(2.0)
+                        continue
                 
                 # Read 23 bytes starting from register 0 using block read
                 raw_data = bus.read_i2c_block_data(self.i2c_address, 0, 23)
@@ -124,8 +136,28 @@ class GravityGPS:
                 if lon_dir == 'W':
                     lon_val = -lon_val
 
+                # If coordinates are 0.0 AND the direction registers are empty (0),
+                # it means the module is in standby mode or not running.
+                # If direction is present (e.g. 'N'/'E') but coordinates are 0.0,
+                # it is actively searching for satellites (Do NOT reset).
+                is_standby = (lat_val == 0.0 and lon_val == 0.0 and raw_data[18] == 0 and raw_data[12] == 0)
+                if is_standby:
+                    zero_data_count += 1
+                    if zero_data_count >= 10:
+                        logger.warning("GPS module appears to be in standby (all zero data) for 10s. Retrying full initialization...")
+                        try:
+                            bus.close()
+                        except:
+                            pass
+                        bus = None
+                        zero_data_count = 0
+                        time.sleep(1.0)
+                        continue
+                else:
+                    zero_data_count = 0
+
                 # Simple validation of coordinates
-                if 0.0 <= lat_val <= 90.0 and 0.0 <= lon_val <= 180.0:
+                if 0.0 <= lat_val <= 90.0 and 0.0 <= lon_val <= 180.0 and not (lat_val == 0.0 and lon_val == 0.0):
                     with self._lock:
                         was_fixed = self.has_fix
                         self.latitude = lat_val

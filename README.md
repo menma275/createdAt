@@ -98,3 +98,39 @@ The GPS module's I2C MCU requires a lower clock speed to communicate reliably. I
   Once the module successfully acquires a satellite fix, the onboard status LED turns **Green** (or starts blinking green). The system automatically detects this change, outputs a log statement:
   `GPS positioning successful (Fixed)! Lat: XX.XXXXXX, Lon: XXX.XXXXXX`
   and updates both the 7-segment LED display and the e-paper rendering coordinates to the physical location.
+
+---
+
+## 🔧 Troubleshooting: systemd Auto-Start Fixes
+
+To resolve GPS initialization failures and high CPU usage when running as a systemd service, the following optimizations were applied:
+
+### 1. Source Code Modifications
+* **CPU Optimization (led.py):** Removed `time.sleep(0.000001)` from bitbanging functions to prevent severe CPU saturation (from 100% down to ~0%).
+* **GPS Standby Recovery (gps.py):** Added a 3-second startup delay and implemented auto-reinitialization if the GPS module returns all-zero data (`0.0, 0.0` with empty direction registers) for 10 consecutive seconds.
+
+### 2. Recommended systemd Service File (`createdat.service`)
+To ensure hardware (I2C/SPI) and network interfaces are fully ready before the Python script launches, configure the service file as follows:
+
+```ini
+[Unit]
+Description=Run createdAt main.py on boot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sakamura
+WorkingDirectory=/home/sakamura/createdAt
+SupplementaryGroups=gpio spi i2c
+# Wait 5 seconds before starting the main script to let hardware/voltage stabilize
+ExecStartPre=/bin/sleep 5
+ExecStart=/home/sakamura/createdAt/venv/bin/python /home/sakamura/createdAt/main.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```

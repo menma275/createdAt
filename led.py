@@ -54,17 +54,13 @@ class SevenSeg:
 
     def _pulse(self):
         self.clk.off()
-        time.sleep(0.000001)
         self.clk.on()
-        time.sleep(0.000001)
 
     def _shift_out(self, byte):
         for _ in range(8):
             self.clk.off()
-            time.sleep(0.000001)
             self.din.value = (byte & 0x80) != 0
             byte <<= 1
-            time.sleep(0.000001)
             self.clk.on()
 
     def _write(self, reg, data):
